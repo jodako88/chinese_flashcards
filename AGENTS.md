@@ -100,6 +100,7 @@ create table vocab_cards (
   id uuid primary key default gen_random_uuid(),
   pinyin text not null unique,
   english text not null,
+  hanzi text,
   category text,
   notes text,
   example_pinyin text,
@@ -131,12 +132,12 @@ create table srs_state (
 ## CSV Format
 
 ```
-pinyin,english,category,notes
-nǐ hǎo,hello,greeting,
-xǐhuān,to like,verb,
+pinyin,english,hanzi,category,notes
+nǐ hǎo,hello,你好,greeting,
+xǐhuān,to like,喜欢,verb,
 ```
 
-Required: `pinyin`, `english`. Optional: `category`, `notes`. Extra columns ignored.
+Required: `pinyin`, `english`. Optional: `hanzi`, `category`, `notes`. Extra columns ignored.
 
 Upsert key: `pinyin`. On re-upload, existing SRS state is preserved. Removed words are retained.
 
@@ -245,9 +246,9 @@ Sentences are stored in `vocab_cards.example_pinyin` and `vocab_cards.example_en
 - Settings link
 
 ### Study
-- Card front: large pinyin or English (based on direction setting)
+- Card front: large pinyin or English (based on direction setting); when pinyin is on the front, show Hanzi with it if present
 - "Show Answer" button
-- Card back: translation, notes, example sentence with target word bolded
+- Card back: translation, notes, example sentence with target word bolded; when pinyin is revealed on the back, show Hanzi with it if present
 - Loading state: spinner + "Generating example..." while fetching
 - Offline notice if sentence generation unavailable
 - "↻ Regenerate" button
@@ -319,7 +320,6 @@ Production implementation must still follow these rules:
 
 Do not implement or suggest:
 - Multi-user support or auth
-- Hanzi/character display
 - Audio or TTS
 - Multiple decks
 - Timer-based card reinsertion

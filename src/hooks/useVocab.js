@@ -35,6 +35,7 @@ function buildImportRows(rows) {
       result.validRows.push({
         pinyin,
         english,
+        hanzi: normalizeOptionalValue(row.hanzi),
         category: normalizeOptionalValue(row.category),
         notes: normalizeOptionalValue(row.notes),
       });

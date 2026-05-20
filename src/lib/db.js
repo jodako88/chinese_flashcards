@@ -16,6 +16,7 @@ const CARD_COLUMNS = `
   id,
   pinyin,
   english,
+  hanzi,
   category,
   notes,
   example_pinyin,
@@ -37,7 +38,7 @@ const SRS_WITH_CARD_SELECT = `
   )
 `;
 
-const VOCAB_CARD_FIELDS = ['pinyin', 'english', 'category', 'notes'];
+const VOCAB_CARD_FIELDS = ['pinyin', 'english', 'hanzi', 'category', 'notes'];
 const SRS_UPDATE_FIELDS = [
   'interval',
   'ease_factor',

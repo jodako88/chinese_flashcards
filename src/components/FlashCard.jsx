@@ -6,6 +6,34 @@ function getFrontLabel(direction) {
   return direction === 'en-py' ? 'English' : 'Pinyin';
 }
 
+function shouldShowFrontHanzi(card, direction) {
+  return direction !== 'en-py' && Boolean(card.hanzi);
+}
+
+function getAnswerFields(card, direction) {
+  const fields =
+    direction === 'en-py'
+      ? [
+          {
+            label: 'Pinyin',
+            value: card.pinyin,
+            detail: card.hanzi,
+            className: 'text-xl text-stone-950',
+            detailClassName: 'mt-2 text-2xl text-stone-950',
+          },
+          { label: 'English', value: card.english, className: 'text-xl text-stone-950' },
+        ]
+      : [
+          { label: 'English', value: card.english, className: 'text-xl text-stone-950' },
+        ];
+
+  if (card.notes) {
+    fields.push({ label: 'Notes', value: card.notes, className: 'text-sm leading-6 text-stone-600' });
+  }
+
+  return fields.filter((field) => field.value);
+}
+
 export function FlashCard({ card, direction, isRevealed, onReveal, sentence }) {
   return (
     <article className="rounded-3xl border border-stone-200 bg-white px-6 py-8 shadow-sm">
@@ -14,25 +42,21 @@ export function FlashCard({ card, direction, isRevealed, onReveal, sentence }) {
           {getFrontLabel(direction)}
         </span>
         <p className="text-4xl font-medium leading-tight text-stone-950">{getFrontText(card, direction)}</p>
+        {shouldShowFrontHanzi(card, direction) && (
+          <p className="mt-3 text-3xl font-medium leading-tight text-stone-700">{card.hanzi}</p>
+        )}
       </div>
 
       {isRevealed ? (
         <div className="border-t border-stone-200 pt-6">
           <dl className="space-y-4">
-            <div>
-              <dt className="text-xs font-medium uppercase text-stone-400">Pinyin</dt>
-              <dd className="mt-1 text-xl text-stone-950">{card.pinyin}</dd>
-            </div>
-            <div>
-              <dt className="text-xs font-medium uppercase text-stone-400">English</dt>
-              <dd className="mt-1 text-xl text-stone-950">{card.english}</dd>
-            </div>
-            {card.notes && (
-              <div>
-                <dt className="text-xs font-medium uppercase text-stone-400">Notes</dt>
-                <dd className="mt-1 text-sm leading-6 text-stone-600">{card.notes}</dd>
+            {getAnswerFields(card, direction).map((field) => (
+              <div key={field.label}>
+                <dt className="text-xs font-medium uppercase text-stone-400">{field.label}</dt>
+                <dd className={`mt-1 ${field.className}`}>{field.value}</dd>
+                {field.detail && <dd className={field.detailClassName}>{field.detail}</dd>}
               </div>
-            )}
+            ))}
           </dl>
 
           <div className="mt-6 rounded-2xl bg-stone-50 px-4 py-4">
