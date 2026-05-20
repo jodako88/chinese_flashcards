@@ -1,19 +1,8 @@
-import { useEffect } from 'react';
-
-import { CsvUpload } from '../components/CsvUpload';
 import { useDashboard } from '../hooks/useDashboard';
-import { useVocab } from '../hooks/useVocab';
 
 export function Home({ onSettings, onStudy }) {
-  const { importCsvFile, importResult, isImporting } = useVocab();
-  const { counts, error, isLoading, refreshDashboard } = useDashboard();
+  const { counts, error, isLoading } = useDashboard();
   const hasStudyCards = counts.dueTodayCount > 0 || counts.newCardsCount > 0;
-
-  useEffect(() => {
-    if (importResult.hasResult && !importResult.error) {
-      void refreshDashboard();
-    }
-  }, [importResult, refreshDashboard]);
 
   return (
     <main className="min-h-screen bg-stone-50 text-stone-950">
@@ -26,17 +15,11 @@ export function Home({ onSettings, onStudy }) {
           <button
             className="rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm font-medium text-stone-500 shadow-sm"
             onClick={onSettings}
-            title="Settings will be available in Phase 7"
+            title="Open settings"
             type="button"
           >
             Settings
           </button>
-        </div>
-
-        <div className="mb-7">
-          <span className="inline-flex rounded-full border border-amber-200 bg-amber-50 px-4 py-1.5 text-sm font-medium text-amber-700">
-            Streak tracking coming soon
-          </span>
         </div>
 
         {error && (
@@ -59,18 +42,6 @@ export function Home({ onSettings, onStudy }) {
         >
           {hasStudyCards ? `Study Now - ${counts.dueTodayCount + counts.newCardsCount} cards` : 'Nothing due - check back later'}
         </button>
-
-        <div className="mb-6 flex items-center gap-3">
-          <div className="h-px flex-1 bg-stone-200" />
-          <span className="text-xs font-medium uppercase text-stone-400">vocab</span>
-          <div className="h-px flex-1 bg-stone-200" />
-        </div>
-
-        <CsvUpload
-          importResult={importResult}
-          isImporting={isImporting}
-          onImport={importCsvFile}
-        />
       </section>
     </main>
   );

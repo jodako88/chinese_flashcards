@@ -5,7 +5,7 @@ const RATINGS = [
   { id: 'easy', label: 'Easy', className: 'border-sky-200 text-sky-700 hover:bg-sky-50' },
 ];
 
-export function RatingButtons({ disabled, onMarkKnown, onRate }) {
+export function RatingButtons({ disabled, markKnownDisabled = disabled, onMarkKnown, onRate }) {
   return (
     <div>
       <div className="grid grid-cols-4 gap-2">
@@ -24,7 +24,7 @@ export function RatingButtons({ disabled, onMarkKnown, onRate }) {
 
       <button
         className="mt-4 w-full rounded-xl px-4 py-2 text-sm font-medium text-stone-500 transition hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50"
-        disabled={disabled}
+        disabled={markKnownDisabled}
         onClick={onMarkKnown}
         type="button"
       >

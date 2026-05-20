@@ -55,6 +55,7 @@ function isNewCardGraduated(card, rating) {
 export function useSession({
   defaultDirection = DEFAULT_DIRECTION,
   isEnabled = true,
+  isOnline = true,
   newCardLimit = DEFAULT_NEW_CARD_LIMIT,
 } = {}) {
   const [queue, setQueue] = useState([]);
@@ -151,7 +152,9 @@ export function useSession({
       const currentDate = getTodayDateString();
       const nextSrsState = calculateNextSrsState(currentCard.srs_state, rating, currentDate);
 
-      await updateSrsState(currentCard.id, nextSrsState);
+      if (isOnline) {
+        await updateSrsState(currentCard.id, nextSrsState);
+      }
 
       setStats((currentStats) => ({
         ...currentStats,
@@ -176,6 +179,10 @@ export function useSession({
     setError('');
 
     try {
+      if (!isOnline) {
+        throw new Error('Mark as Known requires a connection so the suspended state can be saved.');
+      }
+
       await suspendCard(currentCard.id);
 
       setStats((currentStats) => ({
@@ -197,6 +204,7 @@ export function useSession({
     currentCard,
     direction,
     error,
+    canMarkKnown: isOnline && !isSubmitting,
     isAnswerRevealed,
     isComplete,
     isLoading,

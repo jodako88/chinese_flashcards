@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192" role="img" aria-label="Chinese Study">
+  <rect width="192" height="192" rx="42" fill="#4f46e5"/>
+  <circle cx="96" cy="96" r="58" fill="#fafaf9"/>
+  <path d="M53 124c12 17 31 26 53 23 16-2 28-9 37-20" fill="none" stroke="#4f46e5" stroke-width="10" stroke-linecap="round"/>
+  <text x="96" y="103" text-anchor="middle" fill="#1c1917" font-family="Arial, sans-serif" font-size="50" font-weight="700">PY</text>
+</svg>

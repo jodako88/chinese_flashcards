@@ -1,6 +1,8 @@
 import { useState } from 'react';
 
+import { CsvUpload } from '../components/CsvUpload';
 import { useSettings } from '../hooks/useSettings';
+import { useVocab } from '../hooks/useVocab';
 
 const DIRECTIONS = [
   { value: 'en-py', label: 'EN to PY' },
@@ -11,6 +13,7 @@ const MODELS = ['deepseek-chat', 'deepseek-reasoner'];
 
 export function Settings({ onBack }) {
   const [showConfirm, setShowConfirm] = useState(false);
+  const { importCsvFile, importResult, isImporting } = useVocab();
   const settingsState = useSettings({ includeSuspendedCards: true });
   const { settings } = settingsState;
 
@@ -91,6 +94,13 @@ export function Settings({ onBack }) {
             </select>
           </SettingsRow>
         </SettingsCard>
+
+        <SectionLabel>Vocabulary</SectionLabel>
+        <CsvUpload
+          importResult={importResult}
+          isImporting={isImporting}
+          onImport={importCsvFile}
+        />
 
         <SectionLabel>AI</SectionLabel>
         <SettingsCard>

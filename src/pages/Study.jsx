@@ -2,6 +2,7 @@ import { FlashCard } from '../components/FlashCard';
 import { ProgressBar } from '../components/ProgressBar';
 import { RatingButtons } from '../components/RatingButtons';
 import { SessionSummary } from '../components/SessionSummary';
+import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import { useSentence } from '../hooks/useSentence';
 import { useSession } from '../hooks/useSession';
 import { useSettings } from '../hooks/useSettings';
@@ -13,15 +14,18 @@ const DIRECTIONS = [
 ];
 
 export function Study({ onDone }) {
+  const isOnline = useOnlineStatus();
   const settingsState = useSettings();
   const session = useSession({
     defaultDirection: settingsState.settings.default_direction,
     isEnabled: !settingsState.isLoading,
+    isOnline,
     newCardLimit: settingsState.settings.new_cards_per_day,
   });
   const sentence = useSentence({
     card: session.currentCard,
     isEnabled: session.isAnswerRevealed,
+    isOnline,
     model: settingsState.settings.deepseek_model,
   });
 
@@ -81,6 +85,12 @@ export function Study({ onDone }) {
             {settingsState.error} Using default study settings for this session.
           </p>
         )}
+        {!isOnline && (
+          <p className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            You're offline. Cached cards are reviewable, but example sentence generation is unavailable.
+            Reviews made offline are kept in this session only.
+          </p>
+        )}
 
         {session.currentCard && (
           <div className="mt-5 space-y-5">
@@ -95,6 +105,7 @@ export function Study({ onDone }) {
             {session.isAnswerRevealed && (
               <RatingButtons
                 disabled={session.isSubmitting}
+                markKnownDisabled={!session.canMarkKnown}
                 onMarkKnown={session.markCurrentCardAsKnown}
                 onRate={session.rateCurrentCard}
               />

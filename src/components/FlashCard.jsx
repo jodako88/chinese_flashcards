@@ -41,7 +41,7 @@ export function FlashCard({ card, direction, isRevealed, onReveal, sentence }) {
 
           <button
             className="mt-3 text-sm font-medium text-stone-500 transition hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
-            disabled={sentence.isGenerating}
+            disabled={!sentence.canGenerate}
             onClick={sentence.regenerateSentence}
             type="button"
           >

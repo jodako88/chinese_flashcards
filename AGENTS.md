@@ -241,9 +241,7 @@ Sentences are stored in `vocab_cards.example_pinyin` and `vocab_cards.example_en
 - Cards due today count (review + learning, non-suspended)
 - New cards available count
 - Suspended cards count
-- Streak indicator
 - "Study Now" CTA (disabled if nothing due and no new cards)
-- "Update Vocab" CSV upload
 - Settings link
 
 ### Study
@@ -269,6 +267,7 @@ Sentences are stored in `vocab_cards.example_pinyin` and `vocab_cards.example_en
 ### Settings
 - New cards per day (default 20)
 - Default direction
+- "Update Vocab" CSV upload
 - Deepseek model selector (default: deepseek-chat)
 - "Regenerate All Sentences" with confirmation dialog
 - Suspended Words list: pinyin + english per row, "Unsuspend" button per row
@@ -296,7 +295,7 @@ Work through these phases in order. Do not build ahead.
 - [x] Phase 5: Sentence generation (Netlify function + caching + bolding)
 - [x] Phase 6: Home dashboard + Session summary screen
 - [x] Phase 7: Settings screen + Suspended Words
-- [ ] Phase 8: PWA config + offline mode
+- [x] Phase 8: PWA config + offline mode
 
 Update the checkboxes as phases are completed.
 

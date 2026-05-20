@@ -61,7 +61,7 @@ export function getTargetWordParts(examplePinyin, targetPinyin) {
   ].filter((part) => part.text);
 }
 
-export function useSentence({ card, isEnabled, model = DEFAULT_MODEL }) {
+export function useSentence({ card, isEnabled, isOnline = true, model = DEFAULT_MODEL }) {
   const [sentenceCache, setSentenceCache] = useState({});
   const [sentence, setSentence] = useState(EMPTY_SENTENCE);
   const [error, setError] = useState('');
@@ -93,7 +93,7 @@ export function useSentence({ card, isEnabled, model = DEFAULT_MODEL }) {
       setIsUnavailable(false);
 
       try {
-        if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        if (!isOnline || (typeof navigator !== 'undefined' && navigator.onLine === false)) {
           throw createUnavailableError();
         }
 
@@ -161,7 +161,7 @@ export function useSentence({ card, isEnabled, model = DEFAULT_MODEL }) {
         }
       }
     },
-    [card, isGenerating, model, sentenceCache],
+    [card, isGenerating, isOnline, model, sentenceCache],
   );
 
   useEffect(() => {
@@ -173,18 +173,27 @@ export function useSentence({ card, isEnabled, model = DEFAULT_MODEL }) {
   }, [card?.id, cachedSentence]);
 
   useEffect(() => {
+    if (!isOnline) {
+      setIsGenerating(false);
+      setIsUnavailable(true);
+    }
+  }, [isOnline]);
+
+  useEffect(() => {
     if (
       card &&
       isEnabled &&
+      isOnline &&
       !hasSentence(cachedSentence) &&
       !autoRequestedCardIdsRef.current.has(card.id)
     ) {
       autoRequestedCardIdsRef.current.add(card.id);
       void generateSentence();
     }
-  }, [cachedSentence, card, generateSentence, isEnabled]);
+  }, [cachedSentence, card, generateSentence, isEnabled, isOnline]);
 
   return {
+    canGenerate: isOnline && !isGenerating,
     error,
     exampleEnglish: sentence.example_english,
     examplePinyinParts: getTargetWordParts(sentence.example_pinyin, card?.pinyin),
