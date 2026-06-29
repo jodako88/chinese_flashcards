@@ -5,9 +5,9 @@ This file is the authoritative reference for this project. Read it at the start 
 
 ## Project Overview
 
-A single-user PWA for studying Chinese vocabulary via spaced repetition flashcards. The app ingests a CSV of vocab words, generates pinyin example sentences via the Deepseek API, and schedules review sessions using a modified SM-2 algorithm. Data is persisted in Supabase. Hosted on Netlify.
+A single-user PWA for studying Chinese vocabulary via spaced repetition flashcards. The app ingests a CSV of vocab words, generates pinyin example sentences via the Deepseek API, and schedules review sessions using a modified SM-2 algorithm. Data is persisted in Neon Postgres through Netlify serverless functions. Hosted on Netlify.
 
-Single user. No auth required beyond Supabase anon key.
+Single user. No app auth required. Database credentials stay server-side only.
 
 ---
 
@@ -17,8 +17,8 @@ Single user. No auth required beyond Supabase anon key.
 |---|---|
 | Frontend | React 18 + Vite |
 | Hosting | Netlify |
-| Database | Supabase (Postgres via anon key) |
-| API proxy | Netlify serverless function |
+| Database | Neon Postgres |
+| API proxy | Netlify serverless functions |
 | AI | Deepseek API (deepseek-chat) |
 | PWA | vite-plugin-pwa (Workbox) |
 | Styling | Tailwind CSS |
@@ -30,9 +30,10 @@ Do not suggest Firebase, Vercel, localStorage, IndexedDB as primary data store, 
 ## Architecture Principles
 
 - **Business logic lives in `src/lib` and `src/hooks`, never in components**
-- `srsAlgorithm.js` contains pure functions only. No Supabase calls, no side effects. This makes it independently testable.
-- `supabaseClient.js` is the only file that imports from `@supabase/supabase-js`
-- All Supabase queries are abstracted into a `src/lib/db.js` data access layer. Components and hooks never call Supabase directly.
+- `srsAlgorithm.js` contains pure functions only. No database calls, no side effects. This makes it independently testable.
+- Neon is accessed only from Netlify serverless functions. Never expose `DATABASE_URL` to the browser.
+- `src/lib/db.js` is the browser-facing data access layer. Components and hooks never call Netlify functions or SQL directly.
+- SQL queries live in `netlify/functions/db.js`.
 - Components are presentational where possible. State lives in hooks.
 - Keep components small. If a component exceeds ~100 lines, split it.
 - Use named exports throughout. No default exports except pages.
@@ -60,12 +61,12 @@ Do not suggest Firebase, Vercel, localStorage, IndexedDB as primary data store, 
 │   │   ├── Study.jsx
 │   │   └── Settings.jsx
 │   └── lib/
-│       ├── supabaseClient.js   # single Supabase client instance
-│       ├── db.js               # all Supabase queries
+│       ├── db.js               # browser-facing data access functions
 │       ├── srsAlgorithm.js     # pure SRS functions
 │       └── hsk1-2.json         # embedded HSK 1-2 word list
 ├── netlify/
 │   └── functions/
+│       ├── db.js                # Neon SQL access
 │       └── generate-sentence.js
 ├── public/
 │   ├── manifest.json
@@ -80,18 +81,15 @@ Do not suggest Firebase, Vercel, localStorage, IndexedDB as primary data store, 
 
 ```
 # Netlify environment (set in Netlify dashboard, not committed)
+DATABASE_URL=
 DEEPSEEK_API_KEY=
-
-# Vite / client-side (set in Netlify dashboard and local .env)
-VITE_SUPABASE_URL=
-VITE_SUPABASE_ANON_KEY=
 ```
 
 Never hardcode these values. Never commit a `.env` file.
 
 ---
 
-## Supabase Schema
+## Neon Schema
 
 ### `vocab_cards`
 
@@ -115,7 +113,7 @@ create table vocab_cards (
 create table srs_state (
   card_id uuid primary key references vocab_cards(id) on delete cascade,
   interval integer not null default 1,
-  ease_factor float not null default 2.5,
+  ease_factor double precision not null default 2.5,
   due_date date not null default current_date,
   repetitions integer not null default 0,
   state text not null default 'new',  -- new | learning | review
@@ -125,7 +123,19 @@ create table srs_state (
 );
 ```
 
-`srs_state` is created automatically when a card is upserted. One row per card, always.
+`srs_state` is created automatically when a card is inserted. One row per card, always. See `docs/neon-schema.sql` for the complete schema, including the trigger and `app_settings`.
+
+### `app_settings`
+
+```sql
+create table app_settings (
+  id text primary key,
+  new_cards_per_day integer not null default 20,
+  default_direction text not null default 'random',
+  deepseek_model text not null default 'deepseek-chat',
+  updated_at timestamptz default now()
+);
+```
 
 ---
 
@@ -169,7 +179,7 @@ Constraints:
 
 ### Session Queue Construction
 
-Pull three sets from Supabase, all filtered by `suspended = false`:
+Pull three sets from Neon, all filtered by `suspended = false`:
 
 1. Review cards: `state = 'review' AND due_date <= today`
 2. Learning carryover: `state = 'learning' AND due_date <= today`
@@ -289,7 +299,7 @@ Sentences are stored in `vocab_cards.example_pinyin` and `vocab_cards.example_en
 Work through these phases in order. Do not build ahead.
 
 - [x] Phase 0: Project scaffold
-- [x] Phase 1: Supabase schema + data access layer
+- [x] Phase 1: Neon schema + data access layer
 - [x] Phase 2: CSV upload and upsert
 - [x] Phase 3: SRS algorithm (pure functions + tests)
 - [x] Phase 4: Session queue construction + study flow
@@ -313,7 +323,7 @@ Do not copy it directly as production code because it uses mock data, inline sta
 Production implementation must still follow these rules:
 - Business logic lives in src/lib and src/hooks
 - Components are presentational where possible
-- Supabase calls only happen in src/lib/db.js
+- Browser data access goes through src/lib/db.js; SQL only happens in netlify/functions/db.js
 - Build only the current phase
 
 ## Non-Goals [FINAL]
